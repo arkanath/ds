@@ -26,24 +26,42 @@ class EchoClient(protocol.Protocol):
     def connectionLost(self, reason):
         print "connection lost"
 
+
+class cli(EchoClient):
+    def __init__(self):
+        self.message_to_be_sent = "l"
+
+    def connectionMade(self):
+        self.transport.write(self.message_to_be_sent)
+
+    def run(self):
+        self.message_to_be_sent = "huehuehue"
+        self.f = EchoFactory()
+        reactor.connectTCP("localhost", 8000, self.f)
+        reactor.run()
+
+
 class EchoFactory(protocol.ClientFactory):
-    protocol = EchoClient
+
+    protocol = cli
 
     def clientConnectionFailed(self, connector, reason):
         print "Connection failed - goodbye!"
         reactor.stop()
-    
+
     def clientConnectionLost(self, connector, reason):
         print "Connection lost - goodbye!"
         reactor.stop()
 
-
 # this connects the protocol to a server running on port 8000
-def main():
-    f = EchoFactory()
-    reactor.connectTCP("localhost", 8000, f)
-    reactor.run()
+# def main():
+#     f = EchoFactory()
+#     reactor.connectTCP("localhost", 8010, f)
+#     reactor.run()
+#
+# # this only runs if the module was *not* imported
+# if __name__ == '__main__':
+#     main()
 
-# this only runs if the module was *not* imported
-if __name__ == '__main__':
-    main()
+hola = cli()
+hola.run()
