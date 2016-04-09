@@ -28,14 +28,14 @@ class EchoClient(protocol.Protocol):
 
 
 class cli(EchoClient):
-    def __init__(self):
-        self.message_to_be_sent = "l"
+    m = "l"
 
     def connectionMade(self):
-        self.transport.write(self.message_to_be_sent)
+        self.transport.write(self.m)
 
     def run(self):
-        self.message_to_be_sent = "huehuehue"
+        cli.m = "huehuehue"
+
         self.f = EchoFactory()
         reactor.connectTCP("localhost", 8000, self.f)
         reactor.run()

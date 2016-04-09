@@ -22,7 +22,7 @@ def main():
     factory = protocol.ServerFactory()
     factory.protocol = Echo
     print socket.gethostbyname(socket.gethostname())
-    reactor.listenTCP(8000,factory)
+    reactor.listenTCP(8010,factory)
     reactor.run()
 
 # this only runs if the module was *not* imported
