@@ -4,15 +4,17 @@ import matplotlib.pyplot as plt
 from networkx import *
 import signal
 import json
+import sys
 import Queue
 from collections import defaultdict
-class MasterNode(Transporter):
 
+
+class MasterNode(Transporter):
     def on_receive(self, msg):
-        print "Received:",msg
+        print "Received:", msg
         for m in msg:
             decoded_json = json.loads(m)
-            type = msg['type']
+            type = decoded_json['type']
             if type == 'send_along_path':
                 self.handleAlongPath(decoded_json)
 
@@ -105,20 +107,20 @@ class MasterNode(Transporter):
         print "hueh"
 
     def handleAlongPath(self, msg):
-        if len(msg['remaining_path'])>0:
+        if len(msg['remaining_path']) > 0:
             ip, port = msg['remaining_path'][0]
             msg['remaining_path'].remove(msg['remaining_path'][0])
-            self.send_message(ip,port,msg)
+            self.send_message(ip, port, msg)
         else:
-            pass
+            print "reached at node", msg['msg']
 
     def getTreePaths(self, T, rootID):
         flag = True
         path = defaultdict(list)
         que = Queue.Queue()
         que.put(rootID)
-        parent = {rootID: -1}
-        path[rootID] = [rootID]
+        parent = {rootID: None}
+        path[rootID] = []
         children = defaultdict(list)
         visited = []
 
@@ -137,16 +139,27 @@ class MasterNode(Transporter):
         return parent, children, path
 
     def sendMSTInfos(self, signal, frame):
-        print self.getTreePaths(self.mst,'1')
+        parent, children, path = self.getTreePaths(self.mst, '1')
         print "caught"
-        msg = {}
-        msg['type'] = 'send_along_path'
-        msg['remaining_path'] = [('127.0.0.1',8002), ('127.0.0.1',8003)]
-        msg['msg'] = "huehuehuehue"
-        
-        # self.send_message('127.0.0.1',8001,msg)
+        for node in self.G.nodes():
+            print node
+            info = {}
+            info['self_node'] = self.node_infos[node]
+            info['parent'] = self.node_infos[parent[node]]
+            info['children'] = [self.node_infos[l] for l in children[node]]
+            msg = {}
+            msg['type'] = 'send_along_path'
+            msg['remaining_path'] = []
+            for l in path[node]:
+                msg['remaining_path'].append((self.node_infos[l]['ip'],self.node_infos[l]['port']))
+            msg['msg'] = info
+            print self.node_infos[node]['ip'],self.node_infos[node]['port']
+            self.send_message(self.node_infos[node]['ip'],self.node_infos[node]['port'],msg)
+            print "done"
+            # break
 
-    def bhagbc(self):
+    def bhagbc(self, signal, frame):
+        print "       huehuehue bye"
         sys.exit(0)
 
     def __init__(self, name):
@@ -156,13 +169,14 @@ class MasterNode(Transporter):
         self.node_infos = {}
         for node in nodes:
             self.node_infos[node['id']] = node
+        self.node_infos[None] = None
         self.G = self.getGraph(nodes, edges)
         self.rep_pref = rep
         self.mst = self.MSTConstruction(self.G)
         # nx.draw(self.mst)
         # plt.draw()
         # plt.show()
-        self.bind_receive(8001)
+        self.bind_receive('127.0.0.1',8005)
         self.start_listening()
 
 
