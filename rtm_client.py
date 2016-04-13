@@ -60,7 +60,7 @@ def signal_handler(signal, frame):
     print 'You pressed Ctrl+C - or killed me with -2'
 signal.signal(signal.SIGINT, signal_handler)
 h = RTMClient()
-h.makeNewConnection('127.0.0.1', 8000, "w")
+h.makeNewConnection('127.0.0.1', 8001, "w")
 # h.makeNewConnection('127.0.0.1', 8010, "w2")
 # time.sleep(1)
 # h.send_message("w2","huehuehue2")
