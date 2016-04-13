@@ -15,9 +15,7 @@ class Transporter:
     def send_message(self, ip, port, msg):
         outgoing = zmq.Context().socket(zmq.PUSH)
         outgoing.connect('tcp://'+ip+':'+str(port))
-        print "connected"
         outgoing.send_json(msg)
-        print "sent"
 
     def send_message_node(self, node, msg):
         outgoing = zmq.Context().socket(zmq.PUSH)

@@ -1,52 +1,27 @@
+from transporter_api import Transporter
 import networkx as nx
-class Node:
-	def __init__(self):
-		# self.G = getGraph()
-		# self.name = str
-		self.state = "reiden/broadcastecho"
-		self.root = "0"
-		self.self_node = "0"
-		self.fragmentId = "0"
-		self.parent = "0"
-		self.children = ["0"]
-		self.ack = 0
+import json
+from pprint import pprint
 
-	def startHeartbeat():
-		pass
+class Node(Transporter):
+    def on_receive(self, msg):
+        print "Received:", msg
+        for m in msg:
+            decoded_json = json.loads(m)
+            type = decoded_json['type']
+            if type == 'send_init_along_path':
+                self.handleInitAlongPath(decoded_json)
 
-	def stopHeartbeat():
-		pass
-
-	def setHeartbeatInterval():
-		pass
-
-	def listenToHeartbeat():
-		pass
-
-	def sendmsgtoroot():
-		if self.id == self.rootid:
-			self.state = "broadcastecho"
-			broadcastToChildren("reiden")
-			return
-		# send message to parent
-
-	def broadcastToChildren(message):
-		#for changing the state to reiden/find once the root has already known that that there is an edge failure
-		state = message
-		#set fragmentid to set of all nodes when message is findmoe
-		#sends reiden/find to all its children 		
-
-	def convergeCast(subtree):
-		self.ack += 1
-		self.fragmentId = self.fragmentId.union(subtree)
-		if self.ack == len(self.children):
-			#send acknowledgement and fragmentId to parent
-			if self.root["id"] == self.self_node["id"]:
-				broadcastToChildren("findMOE")
-			return
-
-	def convergeCastMOE(path,edge,weight):
-
-
-	def changeRoot():
-
+    def handleInitAlongPath(self, msg):
+        if len(msg['remaining_path']) > 0:
+            ip, port = msg['remaining_path'][0]
+            msg['remaining_path'].remove(msg['remaining_path'][0])
+            self.send_message(ip, port, msg)
+        else:
+            self.self_node = msg['msg']['self_node']
+            self.root_node = msg['msg']['root_node']
+            self.fragmentId = set(msg['msg']['self_node']['id'])
+            self.parent = msg['msg']['parent']
+            self.children = msg['msg']['children']
+            self.ack = 0
+            pprint(vars(self))

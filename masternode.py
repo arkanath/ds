@@ -1,5 +1,4 @@
 import networkx as nx
-from transporter_api import Transporter
 import matplotlib.pyplot as plt
 from networkx import *
 import signal
@@ -7,16 +6,10 @@ import json
 import sys
 import Queue
 from collections import defaultdict
+from node import *
+import node_definitions
 
-
-class MasterNode(Transporter):
-    def on_receive(self, msg):
-        print "Received:", msg
-        for m in msg:
-            decoded_json = json.loads(m)
-            type = decoded_json['type']
-            if type == 'send_along_path':
-                self.handleAlongPath(decoded_json)
+class MasterNode(Node):
 
     def getGraph(self, nodes, edges):
         G = nx.Graph()
@@ -41,33 +34,36 @@ class MasterNode(Transporter):
         numreplications = -1
         replication_preferences = []
         with open(filename, 'r') as f:
-            for line in f:
-                line = line[:-1]
-                if machine == -1:
-                    machine = int(line)
-                elif machine > 0:
-                    machine -= 1
-                    x = line.split(':')
-                    node_info = {}
-                    node_info['id'] = x[0]
-                    node_info['ip'] = x[1]
-                    node_info['port'] = int(x[2])
-                    nodes.append(node_info)
-                elif numedges == -1:
-                    numedges = int(line)
-                elif numedges > 0:
-                    numedges -= 1
-                    x = line.split()
-                    x[2] = int(x[2])
-                    edges.append(x)
-                elif numreplications == -1:
-                    numreplications = int(line)
-                elif numreplications > 0:
-                    numreplications -= 1
-                    x = line.split()
-                    replication_preferences.append((int(x[0]), int(x[1])))
-                else:
-                    continue
+            lines = f.readlines()
+        self.root_id = lines[0].strip()
+        lines = lines[1:]
+        for line in lines:
+            line = line[:-1]
+            if machine == -1:
+                machine = int(line)
+            elif machine > 0:
+                machine -= 1
+                x = line.split(':')
+                node_info = {}
+                node_info['id'] = x[0]
+                node_info['ip'] = x[1]
+                node_info['port'] = int(x[2])
+                nodes.append(node_info)
+            elif numedges == -1:
+                numedges = int(line)
+            elif numedges > 0:
+                numedges -= 1
+                x = line.split()
+                x[2] = int(x[2])
+                edges.append(x)
+            elif numreplications == -1:
+                numreplications = int(line)
+            elif numreplications > 0:
+                numreplications -= 1
+                x = line.split()
+                replication_preferences.append((int(x[0]), int(x[1])))
+            else:
+                continue
         return nodes, edges, replication_preferences
 
     def reduceEdgeWeights(self, G, repNodes):
@@ -90,12 +86,12 @@ class MasterNode(Transporter):
     # to set the edge weight of user specified edges in the MST to negative infinity
     # so that those edges are always included in the MST constructed.
     def prefMSTedges(self, prefEdgeSet, G):
-        for edge in preferredEdgeSet:
+        for edge in prefEdgeSet:
             G[edge[0]][edge[1]]['weight'] = -sys.maxint
         return G
 
     def unprefMSTedges(self, prefEdgeSet, G):
-        for edge in preferredEdgeSet:
+        for edge in prefEdgeSet:
             G[edge[0]][edge[1]]['weight'] = sys.maxint
         return G
 
@@ -105,14 +101,6 @@ class MasterNode(Transporter):
 
     def getParentChildrenPathFromMST(self):
         print "hueh"
-
-    def handleAlongPath(self, msg):
-        if len(msg['remaining_path']) > 0:
-            ip, port = msg['remaining_path'][0]
-            msg['remaining_path'].remove(msg['remaining_path'][0])
-            self.send_message(ip, port, msg)
-        else:
-            print "reached at node", msg['msg']
 
     def getTreePaths(self, T, rootID):
         flag = True
@@ -144,11 +132,12 @@ class MasterNode(Transporter):
         for node in self.G.nodes():
             print node
             info = {}
+            info['root_node'] = self.node_infos[self.root_id]
             info['self_node'] = self.node_infos[node]
             info['parent'] = self.node_infos[parent[node]]
             info['children'] = [self.node_infos[l] for l in children[node]]
             msg = {}
-            msg['type'] = 'send_along_path'
+            msg['type'] = 'send_init_along_path'
             msg['remaining_path'] = []
             for l in path[node]:
                 msg['remaining_path'].append((self.node_infos[l]['ip'],self.node_infos[l]['port']))
@@ -173,14 +162,16 @@ class MasterNode(Transporter):
         self.G = self.getGraph(nodes, edges)
         self.rep_pref = rep
         self.mst = self.MSTConstruction(self.G)
+        pprint (vars(self))
         # nx.draw(self.mst)
         # plt.draw()
         # plt.show()
-        self.bind_receive('127.0.0.1',8005)
+        self.bind_receive('127.0.0.1',8003)
         self.start_listening()
 
 
 def main():
+    # pass
     M = MasterNode('input.txt')
 
 
