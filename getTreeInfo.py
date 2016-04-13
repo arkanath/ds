@@ -5,13 +5,12 @@ def getTreeInfo(self, T, rootID):
 	flag = True
 	path = {}
 	que = Queue.Queue()
-	visited = []
-	parent = {}
-	parent[rootID] = -1
-	children = {}
-	path = {}
-	path[rootID] = [rootID]
 	que.put(rootID)
+	parent = {rootID:-1}
+	path = {rootID:rootID}
+	children = {}
+	visited = []
+
 	while !que.empty():
 		current = que.get()
 		visited.append(current)
