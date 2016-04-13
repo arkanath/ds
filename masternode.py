@@ -1,6 +1,6 @@
 import networkx as nx
-class MasterNode:
 
+class MasterNode:
 	def getGraph(self,nodes,edges):
 		G = nx.Graph()
 		list_of_nodes = []
@@ -10,7 +10,7 @@ class MasterNode:
 		list_of_edges = []
 		for edge in edges:
 			weight = dict()
-			weight['weight'] = edge[2]	
+			weight['weight'] = edge[2]
 			list_of_edges.append((edge[0],edge[1],weight))
 		G.add_edges_from(list_of_edges)
 		return G
@@ -53,6 +53,39 @@ class MasterNode:
 					continue
 		return ip,port,edges,reps
 
+	def reduceEdgeWeight(self, G, repNodes):
+		k = 1; #Need to be set to some weight for weight reduction
+		for pair in repNodes:
+			if nx.has_path(G,source = pair[0], target = pair[1]):
+				path = nx.shortest_path(G, source = pair[0], target = pair[1])
+				pathLength = len(path) - 1
+				# print "pair", pair
+				# print "path:",path
+				# print "length:",pathLength
+				for i in range(0, pathLength):
+					# print "here"
+					# print path[i], path[i+1]
+					# print "weight", G[path[i]][path[i + 1]]['weight']
+					G[path[i]][path[i + 1]]['weight'] = G[path[i]][path[i + 1]]['weight'] - float(k/pathLength)
+		return G
+
+	#to set the edge weight of user specified edges in the MST to negative infinity
+	#so that those edges are always included in the MST constructed.
+	def prefMSTedges(self, prefEdgeSet, G):
+		for edge in preferredEdgeSet:
+			G[edge[0]][edge[1]]['weight'] = -sys.maxint
+		return G
+
+	def unprefMSTedges(self, prefEdgeSet, G):
+		for edge in preferredEdgeSet:
+			G[edge[0]][edge[1]]['weight'] = sys.maxint
+		return G
+
+	def MSTConstructio(self, G):
+		T = nx.minimum_spanning_tree(G)
+		return T
+
+
 	def __init__(self,name):
 		ip,port,edges,rep = self.readFile(name)
 		nodes = len(ip)
@@ -64,6 +97,9 @@ class MasterNode:
 		for path in all_paths:
 			print(path)
 
+		G1 = self.reduceEdgeWeight(self.G, rep)
+		# for edge in nx.edges(G1):
+		# 	print G1[edge[0]][edge[1]]['weight']
 
 def main():
 	M = MasterNode('input.txt')
