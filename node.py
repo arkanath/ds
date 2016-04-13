@@ -3,21 +3,25 @@ class Node:
 	def __init__(self):
 		# self.G = getGraph()
 		# self.name = str
-		self.fragmentId = set()
 		self.state = "reiden/broadcastecho"
-		self.rootid =
-		self.id =
-		self.parent =
-		self.children =
+		self.root = "0"
+		self.self_node = "0"
+		self.fragmentId = "0"
+		self.parent = "0"
+		self.children = ["0"]
 		self.ack = 0
 
 	def startHeartbeat():
+		pass
 
 	def stopHeartbeat():
+		pass
 
 	def setHeartbeatInterval():
+		pass
 
 	def listenToHeartbeat():
+		pass
 
 	def sendmsgtoroot():
 		if self.id == self.rootid:
@@ -27,14 +31,22 @@ class Node:
 		# send message to parent
 
 	def broadcastToChildren(message):
-		# for changing the state to reiden once the root has already known that that there is an edge failure
-		state = "reiden"
-		#sends reiden to all its children 		
+		#for changing the state to reiden/find once the root has already known that that there is an edge failure
+		state = message
+		#set fragmentid to set of all nodes when message is findmoe
+		#sends reiden/find to all its children 		
 
-	def covergeCast():
+	def convergeCast(subtree):
 		self.ack += 1
-		if self.ack < len(self.children):
-			
+		self.fragmentId = self.fragmentId.union(subtree)
+		if self.ack == len(self.children):
+			#send acknowledgement and fragmentId to parent
+			if self.root["id"] == self.self_node["id"]:
+				broadcastToChildren("findMOE")
+			return
+
+	def convergeCastMOE(path,edge,weight):
+
 
 	def changeRoot():
 
