@@ -40,6 +40,8 @@ def get_moe(self):
  				min_edge['weight'] = min_wt
  	return min_edge
 
+Node.get_moe = classmethod(get_moe)
+
 def converge_cast_moe(self,edge,path):
 	self.ack+=1
 	if hasattr(self,'moeList'):
@@ -76,5 +78,8 @@ def converge_cast_moe(self,edge,path):
 		else:
 			if min_edge['weight'] != sys.maxint:
 				#call root change
+				pass
 			else:
 				pass
+
+Node.converge_cast_moe = classmethod(converge_cast_moe)
