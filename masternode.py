@@ -7,7 +7,6 @@ import sys
 import Queue
 from collections import defaultdict
 from node import *
-import node_definitions
 
 class MasterNode(Node):
 
@@ -126,7 +125,7 @@ class MasterNode(Node):
                     path[neighbor].append(neighbor)
         return parent, children, path
 
-    def sendMSTInfos(self, signal, frame):
+    def sendMSTInfos(self):
         parent, children, path = self.getTreePaths(self.mst, '1')
         print "caught"
         for node in self.G.nodes():
@@ -136,6 +135,16 @@ class MasterNode(Node):
             info['self_node'] = self.node_infos[node]
             info['parent'] = self.node_infos[parent[node]]
             info['children'] = [self.node_infos[l] for l in children[node]]
+            nbrs = self.G.edges(node, True)
+            neighbors_list = []
+            for x in nbrs:
+                nb = {}
+                nb['id'] = x[1]
+                nb['ip'] = self.node_infos[nb['id']]['ip']
+                nb['port'] = self.node_infos[nb['id']]['port']
+                nb['weight'] = x[2]['weight']
+                neighbors_list.append(nb)
+            info['neighbors'] = neighbors_list
             msg = {}
             msg['type'] = 'send_init_along_path'
             msg['remaining_path'] = []
@@ -147,13 +156,8 @@ class MasterNode(Node):
             print "done"
             # break
 
-    def bhagbc(self, signal, frame):
-        print "       huehuehue bye"
-        sys.exit(0)
-
     def __init__(self, name):
-        signal.signal(signal.SIGINT, self.sendMSTInfos)
-        signal.signal(signal.SIGTSTP, self.bhagbc)
+        self.startInterruptHandling()
         nodes, edges, rep = self.readFile(name)
         self.node_infos = {}
         for node in nodes:
@@ -166,7 +170,7 @@ class MasterNode(Node):
         # nx.draw(self.mst)
         # plt.draw()
         # plt.show()
-        self.bind_receive('127.0.0.1',8003)
+        self.bind_receive('127.0.0.1',8005)
         self.start_listening()
 
 
