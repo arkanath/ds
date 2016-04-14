@@ -11,8 +11,8 @@ def converge_cast_ack(self,subtreeId):
 		self.fragmentId = [self.self_node['id']]
 	self.fragmentId.extend(subtreeId)
 	if self.ack >= len(self.children):
+		self.ack = 0
 		if self.parent is not None:
-			self.ack = 0
 			msg = {}
 			msg['type'] = "ack_to_reiden"
 			msg['msg']  = self.fragmentId
@@ -23,11 +23,11 @@ def converge_cast_ack(self,subtreeId):
 
 Node.converge_cast_ack = classmethod(converge_cast_ack)
 
-def getMOE(self):
+def get_moe(self):
 	min_wt = sys.maxint
 	min_edge = {}
 	min_edge['weight'] = sys.maxint
-	for neighbour in self.neighbours:
+	for neighbour in self.neighbours: 
 		if neighbour['id'] not in self.fragmentId:
 			if min_wt > neighbour['weight']:
 				min_wt = neighbour['weight']
@@ -58,7 +58,23 @@ def converge_cast_moe(self,edge,path):
 				min_wt = anedge[0]['weight']
 				min_edge = anedge[0]
 				Path = anedge[1]
-		ownMOE = self.getMOE()
-		if ownMOE['weight'] != sys.maxint:
-			if ownMOE['weight'] < min_edge['weight']:
-				Path = []
+		own_moe = self.get_moe()
+		if own_moe['weight'] != sys.maxint:
+			if own_moe['weight'] < min_edge['weight']:
+				Path = [self.self_node]
+				min_edge = own_moe
+			else:
+				Path.append(self.self_node)
+		else:
+			Path.append(self.self_node)
+		if self.parent is not None:
+			msg = {}
+			msg['type'] = 'moe_update'
+			msg['edge'] = min_edge
+			msg['path'] = Path
+			self.send_message(self.parent['ip'],self.parent['port'],msg)
+		else:
+			if min_edge['weight'] != sys.maxint:
+				#call root change
+			else:
+				pass
