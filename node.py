@@ -20,7 +20,7 @@ class Node(Transporter):
         else:
             self.self_node = msg['msg']['self_node']
             self.root_node = msg['msg']['root_node']
-            self.fragmentId = set(msg['msg']['self_node']['id'])
+            self.fragmentId = [msg['msg']['self_node']['id']]
             self.parent = msg['msg']['parent']
             self.children = msg['msg']['children']
             self.ack = 0
