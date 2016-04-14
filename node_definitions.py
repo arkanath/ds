@@ -27,7 +27,7 @@ def get_moe(self):
 	min_wt = sys.maxint
 	min_edge = {}
 	min_edge['weight'] = sys.maxint
-	for neighbour in self.neighbours: 
+	for neighbour in self.neighbours:
 		if neighbour['id'] not in self.fragmentId:
 			if min_wt > neighbour['weight']:
 				min_wt = neighbour['weight']
@@ -45,17 +45,17 @@ Node.get_moe = classmethod(get_moe)
 def converge_cast_moe(self,edge,path):
 	self.ack+=1
 	if hasattr(self,'moeList'):
-		moeList.append((edge,path))
+		self.moeList.append((edge,path))
 	else:
-		moeList = []
-		moeList.append((edge,path))
-	if self.ack >= len(self.children):	
+		self.moeList = []
+		self.moeList.append((edge,path))
+	if self.ack >= len(self.children):
 		self.ack = 0
 		Path = []
 		min_wt = sys.maxint
 		min_edge = {}
 		min_edge['weight'] = sys.maxint
-		for anedge in moeList:
+		for anedge in self.moeList:
 			if min_wt > anedge[0]['weight']:
 				min_wt = anedge[0]['weight']
 				min_edge = anedge[0]
@@ -83,3 +83,25 @@ def converge_cast_moe(self,edge,path):
 				pass
 
 Node.converge_cast_moe = classmethod(converge_cast_moe)
+
+
+def change_root(self, path, child):
+	if 1 == len(path):
+		#call the join function
+		if child is not None:
+			self.children.append(child)
+		self.parent = None
+	else:
+		path = path[:-1]
+		self.parent = path[-1]
+		self.children.remove(path[-1])
+		if child is not None:
+			self.children.append(child)
+		msg = {}
+		msg['type'] = 'set_root'
+		msg['path'] = path
+		msg['child'] = self.self_node
+		self.send_message(self.parent['ip'],self.parent['port'],msg)
+
+Node.change_root = classmethod(change_root)
+
