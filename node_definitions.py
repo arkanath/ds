@@ -27,15 +27,16 @@ def get_moe(self):
 	min_wt = sys.maxint
 	min_edge = {}
 	min_edge['weight'] = sys.maxint
-	for neighbour in self.neighbours:
-		if neighbour['id'] not in self.fragmentId:
-			if min_wt > neighbour['weight']:
-				min_wt = neighbour['weight']
+	### COnfirm neighbors
+	for neighbor in self.neighbors:
+		if neighbor['id'] not in self.fragmentId:
+			if min_wt > neighbor['weight']:
+				min_wt = neighbor['weight']
 				min_edge['inside'] = self.self_node
  				nbr = {}
- 				nbr['id'] = neighbour['id']
- 				nbr['ip'] = neighbour['ip']
- 				nbr['port'] = neighbour['port']
+ 				nbr['id'] = neighbor['id']
+ 				nbr['ip'] = neighbor['ip']
+ 				nbr['port'] = neighbor['port']
  				min_edge['outside'] = nbr
  				min_edge['weight'] = min_wt
  	return min_edge
@@ -77,7 +78,7 @@ def converge_cast_moe(self,edge,path):
 			self.send_message(self.parent['ip'],self.parent['port'],msg)
 		else:
 			if min_edge['weight'] != sys.maxint:
-				#call root change
+				self.change_root(Path, self.praent)		#check this line
 				pass
 			else:
 				pass
