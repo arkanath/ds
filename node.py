@@ -50,12 +50,16 @@ class Node(Transporter):
                 self.send_msg_to_root(decoded_json)
             elif type == 'broadcast_reiden':
                 self.broadcast_reiden(decoded_json)
+            elif type== 'formation_completed':
+                self.broadcast_completion_info(decoded_json)
             elif type == 'broadcast_moe':
                 self.broadcast_moe(decoded_json)
             elif type == 'ack_to_reiden':
                 self.converge_cast_ack(decoded_json['msg'])
             elif type == 'moe_update':
                 self.converge_cast_moe(decoded_json['edge'], decoded_json['path'])
+            elif type == 'neighbors_info':
+                super(Node, self).add_neighbor_info(decoded_json)
             elif type == 'set_root':
                 self.change_root(decoded_json['path'], decoded_json['child'], decoded_json['edge'])
             elif type == 'join_request':
@@ -190,6 +194,21 @@ class Node(Transporter):
             for child in self.children:
                 self.send_message(child['ip'], child['port'], msg)
 
+    def on_formation_completition(self):
+        msg = {'type':'formation_completed',
+        }
+        broadcast_completion_info(msg)
+
+    def broadcast_completion_info(self,msg):
+        neighbours_info = {'type': 'neighbors_info',
+                           'id': self.self_node['id'],
+                           'parent':self.parent,
+                           'children': self.children
+        }
+        self.send_message(self.master_node['ip'], self.master_node['port'], neighbours_info)
+        for child in self.children:
+            self.send_message(child['ip'], child['port'], msg)
+
     def on_broadcast_moe(self, list_of_node_ids):
         msg = {'type': 'broadcast_moe',
                'fragment_id': list_of_node_ids
@@ -209,7 +228,6 @@ class Node(Transporter):
                 time.sleep(1)
                 self.on_broadcast_reiden()
         pprint(vars(self))
-
 
     def change_root(self, path, child, edge):
         print "change root initiated", path, child, edge
@@ -287,7 +305,7 @@ class Node(Transporter):
                     self.change_root(ans_path, self.parent, min_edge)  # check this line
                 else:
                     print "Tree sahi ho gaya huehuehuehue"
-                    # TODO masternode join
+
 
     def get_moe(self):
         min_wt = sys.maxint
