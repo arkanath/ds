@@ -7,6 +7,12 @@ import signal
 import sys
 from threading import Timer
 from collections import defaultdict
+import logging
+logger = logging.getLogger('root')
+FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
+logging.basicConfig(format=FORMAT)
+logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 class RepeatedTimer(object):
     def __init__(self, interval, function, *args, **kwargs):
@@ -36,7 +42,7 @@ class RepeatedTimer(object):
 
 class Node(Transporter):
     def on_receive(self, msg):
-        print "Received:", msg
+        logger.debug("Received: "+ str(msg))
         for m in msg:
             decoded_json = json.loads(m)
             type = decoded_json['type']
@@ -103,13 +109,13 @@ class Node(Transporter):
                 l['timestamp'] = int(round(time.time() * 1000))
 
     def callbackHeartbeat(self):
-        print "heartbeatcheck!"
+        logger.debug("heartbeatcheck!")
         newneighbors = []
         toberemoved = []
         for l in self.neighbors:
             curr_time = int(round(time.time() * 1000))
             if l['timestamp'] < curr_time - 2000:
-                print "timeout, removing", l
+                logger.debug("timeout, removing"+str(l))
                 toberemoved.append(l)
                 continue
             else:
@@ -127,7 +133,7 @@ class Node(Transporter):
         toberemoved = []
         for x in self.neighbors:
             if x['id'] in idlist:
-                print "removing", x['id'], 'from neighbors'
+                logger.debug("removing "+ str(x['id'])+ ' from neighbors')
                 toberemoved.append(x)
                 continue
             else:
@@ -137,7 +143,7 @@ class Node(Transporter):
             self.on_link_failure(x['id'])
 
     def shutEverythingDown(self, signal, frame):
-        print "       huehuehue bye"
+        logger.debug("       huehuehue bye")
         sys.exit(0)
 
     def handleInterrupt(self, signal, frame):
@@ -168,14 +174,14 @@ class Node(Transporter):
         self.send_msg_to_root(msg)
 
     def send_msg_to_root(self, msg):
-        print "send msg to root", msg
+        logger.debug("send msg to root"+str(msg))
         if self.parent is None:
             self.on_broadcast_reiden()
         else:
             self.send_message(self.parent['ip'], self.parent['port'], msg)
 
     def broadcast_reiden(self, msg):
-        print "broadcast rieden" , msg
+        logger.debug("broadcast rieden"+str(msg))
         if len(self.children) == 0:
             self.converge_cast_ack([])
         else:
@@ -187,7 +193,7 @@ class Node(Transporter):
         self.broadcast_reiden(msg)
 
     def broadcast_moe(self, msg):
-        print "broADCAST MOE ",msg
+        logger.debug("broADCAST MOE "+str(msg))
         self.fragmentId = msg['fragment_id']
         if len(self.children) == 0:
             edge = {'weight': sys.maxint}
@@ -222,7 +228,7 @@ class Node(Transporter):
         if self.root_changed:
             self.root_changed = False
             self.join_request.remove(msg['from'])
-            print "hua2"
+            logger.debug("hua2")
             if msg['from']['id'] > self.self_node['id']:
                 self.parent = msg['from']
             else:
@@ -232,7 +238,7 @@ class Node(Transporter):
         pprint(vars(self))
 
     def change_root(self, path, child, edge):
-        print "change root initiated", path, child, edge
+        logger.debug("change root initiated"+str(path)+","+str(child)+","+str(edge))
         if len(path) == 1:
             # call the join function
             if child is not None:
@@ -246,7 +252,7 @@ class Node(Transporter):
             if edge['outside'] in self.join_request:
                 self.root_changed = False
                 self.join_request.remove(edge['outside'])
-                print "hua1", edge
+                logger.debug("hua1"+str(edge))
                 if edge['outside']['id'] > edge['inside']['id']:
                     self.parent = edge['outside']
                 else:
@@ -268,7 +274,7 @@ class Node(Transporter):
             self.send_message(self.parent['ip'], self.parent['port'], msg)
 
     def converge_cast_moe(self, edge, path):
-        print "converge_cast_moe inititated" , edge, path
+        logger.debug("converge_cast_moe inititated"+str(edge)+","+str(path))
         self.ack += 1
         if hasattr(self, 'moeList'):
             self.moeList.append((edge, path))
@@ -306,7 +312,7 @@ class Node(Transporter):
                 if min_edge['weight'] != sys.maxint:
                     self.change_root(ans_path, self.parent, min_edge)  # check this line
                 else:
-                    print "Tree sahi ho gaya huehuehuehue"
+                    logger.debug("Tree sahi ho gaya huehuehuehue")
                     self.on_formation_completition()
 
 
@@ -329,7 +335,7 @@ class Node(Transporter):
         return min_edge
 
     def converge_cast_ack(self, subtreeId):
-        print "converge_cast_ack initiated",subtreeId
+        logger.debug("converge_cast_ack initiated"+str(subtreeId))
         self.ack += 1
         if self.ack == 1:
             self.fragmentId = [self.self_node['id']]

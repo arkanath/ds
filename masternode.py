@@ -20,7 +20,7 @@ class MasterNode(Node):
                         }
         self.neighbors_info_dic[msg['id']]=neighbors_info
         if len(self.neighbors_info_dic) == len(self.fragmentId):
-            print "sentprint", self.neighbors_info_dic
+            # print "sentprint", self.neighbors_info_dic
             self.printNewMST(self.neighbors_info_dic)
             self.neighbors_info_dic = {}
 
@@ -113,9 +113,6 @@ class MasterNode(Node):
         T = nx.minimum_spanning_tree(G)
         return T
 
-    def getParentChildrenPathFromMST(self):
-        print "hueh"
-
     def getTreePaths(self, T, rootID):
         flag = True
         path = defaultdict(list)
@@ -142,9 +139,9 @@ class MasterNode(Node):
 
     def sendMSTInfos(self):
         parent, children, path = self.getTreePaths(self.mst, '1')
-        print "caught"
+        # print "caught"
         for node in self.G.nodes():
-            print node
+            # print node
             info = {}
             info['master_node'] = self.node_infos[self.root_id]
             info['self_node'] = self.node_infos[node]
@@ -166,9 +163,9 @@ class MasterNode(Node):
             for l in path[node]:
                 msg['remaining_path'].append((self.node_infos[l]['ip'], self.node_infos[l]['port']))
             msg['msg'] = info
-            print self.node_infos[node]['ip'], self.node_infos[node]['port']
+            # print self.node_infos[node]['ip'], self.node_infos[node]['port']
             self.send_message(self.node_infos[node]['ip'], self.node_infos[node]['port'], msg)
-            print "done"
+            # print "done"
             # break
 
     def printNewMST(self, treeInfo):
@@ -212,7 +209,7 @@ class MasterNode(Node):
             for ch in children[x]:
                 self.rootedTree.add_edge(ch, x, weight=self.G[ch][x]['weight'])
         self.printMST(self.rootedTree)
-        print "binding on", sys.argv[1]
+        # print "binding on", sys.argv[1]
         self.bind_receive('127.0.0.1', int(sys.argv[1]))
         self.start_listening()
 
