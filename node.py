@@ -118,7 +118,7 @@ class Node(Transporter):
         toberemoved = []
         for l in self.neighbors:
             curr_time = int(round(time.time() * 1000))
-            if l['timestamp'] < curr_time - 2000:
+            if l['timestamp'] < curr_time - 5000:
                 logger.debug("timeout, removing"+str(l))
                 toberemoved.append(l)
                 continue
