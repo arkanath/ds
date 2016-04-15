@@ -42,8 +42,6 @@ class RepeatedTimer(object):
 
 
 class Node(Transporter):
-    def on_send(self, msg):
-        logger.debug("Sent: "+ str(msg))
     def on_receive(self, msg):
         logger.debug("Received: "+ str(msg))
         for m in msg:
