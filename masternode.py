@@ -61,7 +61,7 @@ class MasterNode(Node):
             elif numreplications > 0:
                 numreplications -= 1
                 x = line.split()
-                replication_preferences.append((int(x[0]), int(x[1])))
+                replication_preferences.append((x[0], x[1]))
             else:
                 continue
         return nodes, edges, replication_preferences
@@ -86,9 +86,10 @@ class MasterNode(Node):
     # to set the edge weight of user specified edges in the MST to negative infinity
     # so that those edges are always included in the MST constructed.
     def prefMSTedges(self, prefEdgeSet, G):
+        Gret = nx.Graph(G)
         for edge in prefEdgeSet:
-            G[edge[0]][edge[1]]['weight'] = -sys.maxint
-        return G
+            Gret[edge[0]][edge[1]]['weight'] = -100000
+        return Gret
 
     def unprefMSTedges(self, prefEdgeSet, G):
         for edge in prefEdgeSet:
@@ -157,14 +158,23 @@ class MasterNode(Node):
             print "done"
             # break
 
+    def printNewMST(self, treeInfo):
+        self.rootedTree = nx.DiGraph()
+        for key, value in treeInfo:
+            if value[key]['parent'] != None:
+                self.rootedTree.add_edge(key, value[key]['parent'], weight=self.G[key][value[key]['parent']]['weight'])
+            for ch in value[key]['children']:
+                self.rootedTree.add_edge(ch, key, weight=self.G[ch][key]['weight'])
+        self.printMST(self.rootedTree)
+
     def printMST(self, rooted_tree):
-        pos=nx.spring_layout(rooted_tree)
-        node_labels = {node:node for node in rooted_tree.nodes()}
-        edge_labels=dict([((u,v,),d['weight'])
-                 for u,v,d in rooted_tree.edges(data=True)])
+        pos = nx.spring_layout(rooted_tree)
+        node_labels = {node: node for node in rooted_tree.nodes()}
+        edge_labels = dict([((u, v,), d['weight'])
+                            for u, v, d in rooted_tree.edges(data=True)])
         nx.draw_networkx_labels(rooted_tree, pos, labels=node_labels)
-        nx.draw_networkx_edge_labels(rooted_tree,pos,edge_labels=edge_labels)
-        nx.draw(rooted_tree,pos, arrows=True)
+        nx.draw_networkx_edge_labels(rooted_tree, pos, edge_labels=edge_labels)
+        nx.draw(rooted_tree, pos, arrows=True)
         pylab.show()
 
     def __init__(self, name):
@@ -176,17 +186,19 @@ class MasterNode(Node):
         self.node_infos[None] = None
         self.G = self.getGraph(nodes, edges)
         self.rep_pref = rep
-        self.mst = self.MSTConstruction(self.G)
+        self.G_updated = self.prefMSTedges(rep, self.G)  # change weights of preferred MST edges
+        self.mst = self.MSTConstruction(self.G_updated)
         parent, children, path = self.getTreePaths(self.mst, '1')
         self.rootedTree = nx.DiGraph()
+        self.partialTree = []
         for x in self.G.nodes():
             if parent[x] != None:
-                self.rootedTree.add_edge(x,parent[x], weight=self.G[x][parent[x]]['weight'])
+                self.rootedTree.add_edge(x, parent[x], weight=self.G[x][parent[x]]['weight'])
             for ch in children[x]:
-                self.rootedTree.add_edge(ch,x, weight=self.G[ch][x]['weight'])
-        pprint(vars(self))
+                self.rootedTree.add_edge(ch, x, weight=self.G[ch][x]['weight'])
         self.printMST(self.rootedTree)
-        self.bind_receive('127.0.0.1', 8001)
+        print "binding on", sys.argv[1]
+        self.bind_receive('127.0.0.1', int(sys.argv[1]))
         self.start_listening()
 
 
