@@ -7,9 +7,10 @@ import sys
 import Queue
 from collections import defaultdict
 from node import *
+import pylab
+
 
 class MasterNode(Node):
-
     def getGraph(self, nodes, edges):
         G = nx.Graph()
         list_of_nodes = []
@@ -131,7 +132,7 @@ class MasterNode(Node):
         for node in self.G.nodes():
             print node
             info = {}
-            info['root_node'] = self.node_infos[self.root_id]
+            info['master_node'] = self.node_infos[self.root_id]
             info['self_node'] = self.node_infos[node]
             info['parent'] = self.node_infos[parent[node]]
             info['children'] = [self.node_infos[l] for l in children[node]]
@@ -149,12 +150,22 @@ class MasterNode(Node):
             msg['type'] = 'send_init_along_path'
             msg['remaining_path'] = []
             for l in path[node]:
-                msg['remaining_path'].append((self.node_infos[l]['ip'],self.node_infos[l]['port']))
+                msg['remaining_path'].append((self.node_infos[l]['ip'], self.node_infos[l]['port']))
             msg['msg'] = info
-            print self.node_infos[node]['ip'],self.node_infos[node]['port']
-            self.send_message(self.node_infos[node]['ip'],self.node_infos[node]['port'],msg)
+            print self.node_infos[node]['ip'], self.node_infos[node]['port']
+            self.send_message(self.node_infos[node]['ip'], self.node_infos[node]['port'], msg)
             print "done"
             # break
+
+    def printMST(self, rooted_tree):
+        pos=nx.spring_layout(rooted_tree)
+        node_labels = {node:node for node in rooted_tree.nodes()}
+        edge_labels=dict([((u,v,),d['weight'])
+                 for u,v,d in rooted_tree.edges(data=True)])
+        nx.draw_networkx_labels(rooted_tree, pos, labels=node_labels)
+        nx.draw_networkx_edge_labels(rooted_tree,pos,edge_labels=edge_labels)
+        nx.draw(rooted_tree,pos, arrows=True)
+        pylab.show()
 
     def __init__(self, name):
         self.startInterruptHandling()
@@ -166,11 +177,16 @@ class MasterNode(Node):
         self.G = self.getGraph(nodes, edges)
         self.rep_pref = rep
         self.mst = self.MSTConstruction(self.G)
-        pprint (vars(self))
-        # nx.draw(self.mst)
-        # plt.draw()
-        # plt.show()
-        self.bind_receive('127.0.0.1',8005)
+        parent, children, path = self.getTreePaths(self.mst, '1')
+        self.rootedTree = nx.DiGraph()
+        for x in self.G.nodes():
+            if parent[x] != None:
+                self.rootedTree.add_edge(x,parent[x], weight=self.G[x][parent[x]]['weight'])
+            for ch in children[x]:
+                self.rootedTree.add_edge(ch,x, weight=self.G[ch][x]['weight'])
+        pprint(vars(self))
+        self.printMST(self.rootedTree)
+        self.bind_receive('127.0.0.1', 8001)
         self.start_listening()
 
 

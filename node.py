@@ -68,7 +68,7 @@ class Node(Transporter):
             self.send_message(ip, port, msg)
         else:
             self.self_node = msg['msg']['self_node']
-            self.root_node = msg['msg']['root_node']
+            self.master_node = msg['msg']['master_node']
             self.fragmentId = [msg['msg']['self_node']['id']]
             self.parent = msg['msg']['parent']
             self.children = msg['msg']['children']
@@ -148,7 +148,7 @@ class Node(Transporter):
         signal.signal(signal.SIGTSTP, self.shutEverythingDown)
 
     def on_link_failure(self, lost_node_id):
-        if self.parent['id'] == lost_node_id:
+        if self.parent != None and self.parent['id'] == lost_node_id:
             self.parent = None
         else:
             index = -1
@@ -217,6 +217,10 @@ class Node(Transporter):
                 self.children.append(child)
             self.parent = None
             self.root_changed = True
+            msg ={}
+            msg['type'] = "join_request"
+            msg['from'] = edge['inside']
+            self.send_message(edge['outside']['ip'], edge['outside']['port'], msg)
             if edge['outside'] in self.join_request:
                 print "hua1"
                 if edge['outside']['id'] > edge['inside']['id']:
@@ -226,11 +230,6 @@ class Node(Transporter):
                     self.on_broadcast_reiden()
                 self.root_changed = False
                 self.join_request.remove(edge['outside'])
-            msg ={}
-            msg['type'] = "join_request"
-            msg['from'] = edge['inside']
-            self.send_message(edge['outside']['ip'], edge['outside']['port'], msg)
-
         else:
             path = path[:-1]
             self.parent = path[-1]
