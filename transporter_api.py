@@ -10,7 +10,7 @@ class Transporter:
 
     def bind_receive(self, ip, port):
         incoming = zmq.Context().socket(zmq.PULL)
-        incoming.bind('inproc://' + ip + ':' + str(port))
+        incoming.bind('tcp://' + ip + ':' + str(port))
         sincoming = zmqstream.ZMQStream(incoming)
         sincoming.on_recv(functools.partial(self.on_receive))
 
@@ -20,9 +20,10 @@ class Transporter:
         outgoing = ctk.socket(zmq.PUSH)
         # outgoing.hwm = 1
         # time.sleep((random.random())/2.0)
-        outgoing.connect('inproc://' + ip + ':' + str(port))
-        outgoing.send_json(msg, zmq.NOBLOCK)
-        ctk.destroy(linger=100)
+        outgoing.connect('tcp://' + ip + ':' + str(port))
+        outgoing.send_json(msg)
+        # outgoing.send_json(msg, zmq.NOBLOCK)
+        # ctk.destroy(linger=100)
 
     def send_message_node(self, node, msg):
         outgoing = zmq.Context().socket(zmq.PUSH)
