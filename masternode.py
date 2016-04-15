@@ -209,8 +209,8 @@ class MasterNode(Node):
             for ch in children[x]:
                 self.rootedTree.add_edge(ch, x, weight=self.G[ch][x]['weight'])
         self.printMST(self.rootedTree)
-        print "binding on",socket.gethostbyname(socket.gethostname()), sys.argv[1]
-        self.bind_receive(socket.gethostbyname(socket.gethostname()), int(sys.argv[1]))
+        # print "binding on",socket.gethostbyname(socket.gethostname()), sys.argv[1]
+        self.bind_receive("10.42.0.93", int(sys.argv[1]))
         self.start_listening()
 
 
