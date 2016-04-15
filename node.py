@@ -200,14 +200,16 @@ class Node(Transporter):
     def handle_join(self, msg):
         self.join_request.append(msg['from'])
         if self.root_changed:
+            self.root_changed = False
+            self.join_request.remove(msg['from'])
             print "hua2"
             if msg['from']['id'] > self.self_node['id']:
                 self.parent = msg['from']
             else:
                 self.children.append(msg['from'])
+                time.sleep(1)
                 self.on_broadcast_reiden()
-            self.root_changed = False
-            self.join_request.remove(msg['from'])
+
 
     def change_root(self, path, child, edge):
         print "change root initiated", path, child, edge
@@ -222,14 +224,16 @@ class Node(Transporter):
             msg['from'] = edge['inside']
             self.send_message(edge['outside']['ip'], edge['outside']['port'], msg)
             if edge['outside'] in self.join_request:
+                self.root_changed = False
+                self.join_request.remove(edge['outside'])
                 print "hua1"
                 if edge['outside']['id'] > edge['inside']['id']:
                     self.parent = edge['outside']
                 else:
                     self.children.append(edge['outside'])
+                    time.sleep(1)
                     self.on_broadcast_reiden()
-                self.root_changed = False
-                self.join_request.remove(edge['outside'])
+
         else:
             path = path[:-1]
             self.parent = path[-1]
