@@ -15,6 +15,7 @@ class Transporter:
         sincoming.on_recv(functools.partial(self.on_receive))
 
     def send_message(self, ip, port, msg):
+        msg['time'] = round(time.time() * 1000)
         print "Sending",ip,port,msg
         ctk = zmq.Context()
         outgoing = ctk.socket(zmq.PUSH)
