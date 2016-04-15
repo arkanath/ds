@@ -2,7 +2,7 @@ import zmq
 from zmq.eventloop import ioloop, zmqstream
 import functools
 import time
-
+import random
 
 class Transporter:
     def on_receive(self, msg):
@@ -19,6 +19,7 @@ class Transporter:
         ctk = zmq.Context()
         outgoing = ctk.socket(zmq.PUSH)
         # outgoing.hwm = 1
+        time.sleep((random.random())/2.0)
         outgoing.connect('tcp://' + ip + ':' + str(port))
         outgoing.send_json(msg, zmq.NOBLOCK)
         ctk.destroy(linger=100)
