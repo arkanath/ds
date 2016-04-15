@@ -50,8 +50,6 @@ class Node(Transporter):
                 self.send_msg_to_root(decoded_json)
             elif type == 'broadcast_reiden':
                 self.broadcast_reiden(decoded_json)
-            elif type== 'formation_completed':
-                self.broadcast_completion_info(decoded_json)
             elif type == 'broadcast_moe':
                 self.broadcast_moe(decoded_json)
             elif type == 'ack_to_reiden':
@@ -59,11 +57,15 @@ class Node(Transporter):
             elif type == 'moe_update':
                 self.converge_cast_moe(decoded_json['edge'], decoded_json['path'])
             elif type == 'neighbors_info':
-                super(Node, self).add_neighbor_info(decoded_json)
+                self.add_neighbor_info(decoded_json)
             elif type == 'set_root':
                 self.change_root(decoded_json['path'], decoded_json['child'], decoded_json['edge'])
             elif type == 'join_request':
                 self.handle_join(decoded_json)
+            elif type == 'formation_completed':
+                self.broadcast_completion_info(decoded_json)
+            elif type == 'neighbors_info':
+                self.add_neighbor_info(decoded_json)
 
     def handleInitAlongPath(self, msg):
         if len(msg['remaining_path']) > 0:
@@ -197,7 +199,7 @@ class Node(Transporter):
     def on_formation_completition(self):
         msg = {'type':'formation_completed',
         }
-        broadcast_completion_info(msg)
+        self.broadcast_completion_info(msg)
 
     def broadcast_completion_info(self,msg):
         neighbours_info = {'type': 'neighbors_info',
@@ -305,6 +307,7 @@ class Node(Transporter):
                     self.change_root(ans_path, self.parent, min_edge)  # check this line
                 else:
                     print "Tree sahi ho gaya huehuehuehue"
+                    self.on_formation_completition()
 
 
     def get_moe(self):

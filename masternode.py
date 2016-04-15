@@ -8,6 +8,9 @@ import Queue
 from collections import defaultdict
 from node import *
 import pylab
+import threading
+import thread
+from multiprocessing import Process
 
 
 class MasterNode(Node):
@@ -17,6 +20,7 @@ class MasterNode(Node):
                         }
         self.neighbors_info_dic[msg['id']]=neighbors_info
         if len(self.neighbors_info_dic) == len(self.fragmentId):
+            print "sentprint", self.neighbors_info_dic
             self.printNewMST(self.neighbors_info_dic)
             self.neighbors_info_dic = {}
 
@@ -169,14 +173,15 @@ class MasterNode(Node):
 
     def printNewMST(self, treeInfo):
         self.rootedTree = nx.DiGraph()
-        for key, value in treeInfo:
-            if value[key]['parent'] != None:
-                self.rootedTree.add_edge(key, value[key]['parent'], weight=self.G[key][value[key]['parent']]['weight'])
-            for ch in value[key]['children']:
-                self.rootedTree.add_edge(ch, key, weight=self.G[ch][key]['weight'])
-        self.printMST(self.rootedTree)
+        for key, value in treeInfo.iteritems():
+            if value['parent'] != None:
+                self.rootedTree.add_edge(key, value['parent']['id'], weight=self.G[key][value['parent']['id']]['weight'])
+            for ch in value['children']:
+                self.rootedTree.add_edge(ch['id'], key, weight=self.G[ch['id']][key]['weight'])
+        threading.Thread(target=self.printMST(self.rootedTree)).start()
 
     def printMST(self, rooted_tree):
+        pylab.close()
         pos = nx.spring_layout(rooted_tree)
         node_labels = {node: node for node in rooted_tree.nodes()}
         edge_labels = dict([((u, v,), d['weight'])
@@ -184,7 +189,7 @@ class MasterNode(Node):
         nx.draw_networkx_labels(rooted_tree, pos, labels=node_labels)
         nx.draw_networkx_edge_labels(rooted_tree, pos, edge_labels=edge_labels)
         nx.draw(rooted_tree, pos, arrows=True)
-        pylab.show()
+        pylab.savefig('plot.pdf')
 
     def __init__(self, name):
         self.neighbors_info_dic = {}
