@@ -1,5 +1,6 @@
 from transporter_api import Transporter
 import networkx as nx
+import socket
 import json
 from pprint import pprint
 import time
@@ -12,7 +13,7 @@ logger = logging.getLogger('root')
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
 logging.basicConfig(format=FORMAT)
 logger.setLevel(logging.DEBUG)
-logger.setLevel(logging.WARNING)
+# logger.setLevel(logging.WARNING)
 
 class RepeatedTimer(object):
     def __init__(self, interval, function, *args, **kwargs):
@@ -97,6 +98,9 @@ class Node(Transporter):
         RepeatedTimer(1, self.callbackHeartbeat)
 
     def handleHeartbeat(self, msg):
+        if not hasattr(self,'neighbors'):
+            print "early heartbeat"
+            return
         for l in self.neighbors:
             if l['id'] == msg['from']:
                 l['timestamp'] = int(round(time.time() * 1000))
