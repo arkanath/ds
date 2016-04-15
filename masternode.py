@@ -11,6 +11,15 @@ import pylab
 
 
 class MasterNode(Node):
+    def add_neighbor_info(self,msg):
+        neighbors_info ={'parent':msg['parent'],
+                        'children': msg['children'],
+                        }
+        self.neighbors_info_dic[msg['id']]=neighbors_info
+        if len(self.neighbors_info_dic) == len(self.fragmentId):
+            self.printNewMST(self.neighbors_info_dic)
+            self.neighbors_info_dic = {}
+
     def getGraph(self, nodes, edges):
         G = nx.Graph()
         list_of_nodes = []
@@ -168,6 +177,7 @@ class MasterNode(Node):
         pylab.show()
 
     def __init__(self, name):
+        self.neighbors_info_dic = {}
         self.startInterruptHandling()
         nodes, edges, rep = self.readFile(name)
         self.node_infos = {}
