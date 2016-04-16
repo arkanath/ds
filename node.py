@@ -95,7 +95,7 @@ class Node(Transporter):
             self.startHeartbeat()
 
     def startHeartbeat(self):
-        RepeatedTimer(0.5, self.callbackHeartbeat)
+        RepeatedTimer(1, self.callbackHeartbeat)
 
     def handleHeartbeat(self, msg):
         if not hasattr(self,'neighbors'):
@@ -118,7 +118,7 @@ class Node(Transporter):
         toberemoved = []
         for l in self.neighbors:
             curr_time = int(round(time.time() * 1000))
-            if l['timestamp'] < curr_time - 2000:
+            if l['timestamp'] < curr_time - 5000:
                 logger.debug("timeout, removing"+str(l))
                 toberemoved.append(l)
                 continue
@@ -147,7 +147,7 @@ class Node(Transporter):
             self.on_link_failure(x['id'])
 
     def shutEverythingDown(self, signal, frame):
-        logger.debug("Bye")
+        logger.debug("       huehuehue bye")
         sys.exit(0)
 
     def handleInterrupt(self, signal, frame):
@@ -158,8 +158,6 @@ class Node(Transporter):
             self.sendMSTInfos()
         elif interrupt_type == "removefromneighbors":
             self.removeFromNeighbors([l.strip() for l in lines[1:]])
-        elif interrupt_type == "removenode":
-            self.neighbors = []
 
     def startInterruptHandling(self):
         signal.signal(signal.SIGINT, self.handleInterrupt)
@@ -195,7 +193,6 @@ class Node(Transporter):
                 self.send_message(child['ip'], child['port'], msg)
 
     def on_broadcast_reiden(self):
-        print "Broadcasting failure information"
         msg = {'type': 'broadcast_reiden'}
         self.broadcast_reiden(msg)
 
@@ -225,8 +222,6 @@ class Node(Transporter):
             self.send_message(child['ip'], child['port'], msg)
 
     def on_broadcast_moe(self, list_of_node_ids):
-        print "Finding Minimum Outgoing Edge"
-        time.sleep(3)
         msg = {'type': 'broadcast_moe',
                'fragment_id': list_of_node_ids
                }
