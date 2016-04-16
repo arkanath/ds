@@ -20,7 +20,7 @@ class Transporter:
         # outgoing.hwm = 1
         outgoing.connect('tcp://' + ip + ':' + str(port))
         outgoing.send_json(msg, zmq.NOBLOCK)
-        ctk.destroy(linger=100)
+        ctk.destroy(linger=1000)
 
     def send_message_node(self, node, msg):
         outgoing = zmq.Context().socket(zmq.PUSH)
