@@ -95,7 +95,7 @@ class Node(Transporter):
             self.startHeartbeat()
 
     def startHeartbeat(self):
-        RepeatedTimer(2, self.callbackHeartbeat)
+        RepeatedTimer(1, self.callbackHeartbeat)
 
     def handleHeartbeat(self, msg):
         if not hasattr(self,'neighbors'):
@@ -118,7 +118,7 @@ class Node(Transporter):
         toberemoved = []
         for l in self.neighbors:
             curr_time = int(round(time.time() * 1000))
-            if l['timestamp'] < curr_time - 6000:
+            if l['timestamp'] < curr_time - 5000:
                 logger.debug("timeout, removing"+str(l))
                 toberemoved.append(l)
                 continue
