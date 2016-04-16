@@ -9,14 +9,14 @@ class Transporter:
         print "Received:", msg
 
     def bind_receive(self, ip, port):
-        incoming = zmq.Context().socket(zmq.SUB)
+        incoming = zmq.Context().socket(zmq.PULL)
         incoming.bind('tcp://' + ip + ':' + str(port))
         sincoming = zmqstream.ZMQStream(incoming)
         sincoming.on_recv(functools.partial(self.on_receive))
 
     def send_message(self, ip, port, msg):
         ctk = zmq.Context()
-        outgoing = ctk.socket(zmq.PUB)
+        outgoing = ctk.socket(zmq.PUSH)
         # outgoing.hwm = 1
         outgoing.connect('tcp://' + ip + ':' + str(port))
         outgoing.send_json(msg, zmq.NOBLOCK)
