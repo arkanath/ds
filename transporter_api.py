@@ -2,6 +2,7 @@ import zmq
 from zmq.eventloop import ioloop, zmqstream
 import functools
 import time
+import random
 
 
 class Transporter:
@@ -17,10 +18,12 @@ class Transporter:
     def send_message(self, ip, port, msg):
         ctk = zmq.Context()
         outgoing = ctk.socket(zmq.PUSH)
-        outgoing.hwm = 1
+        outgoing.hwm = 10
         outgoing.connect('tcp://' + ip + ':' + str(port))
+        time.sleep(random.random()/3.0)
         outgoing.send_json(msg, zmq.NOBLOCK)
-        ctk.destroy(linger=1000)
+        time.sleep(random.random()/3.0)
+        ctk.destroy(linger=100)
 
     def send_message_node(self, node, msg):
         outgoing = zmq.Context().socket(zmq.PUSH)
