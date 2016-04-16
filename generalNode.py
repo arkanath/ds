@@ -12,7 +12,7 @@ class generalNode(Node):
     def __init__(self):
         self.startInterruptHandling()
         # print "binding on",socket.gethostbyname(socket.gethostname()), sys.argv[1]
-        self.bind_receive("127.0.0.1",int(sys.argv[1]))
+        self.bind_receive("10.5.27.204",int(sys.argv[1]))
         self.start_listening()
 
 def main():
