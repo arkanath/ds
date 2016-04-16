@@ -225,9 +225,8 @@ class Node(Transporter):
             self.send_message(child['ip'], child['port'], msg)
 
     def on_broadcast_moe(self, list_of_node_ids):
-        print "Finding Minimum Outgoing Edge start"
+        print "Finding Minimum Outgoing Edge"
         time.sleep(3)
-        print "Finding Minimum Outgoing Edge end"
         msg = {'type': 'broadcast_moe',
                'fragment_id': list_of_node_ids
                }
